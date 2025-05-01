@@ -1,0 +1,9 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SocketChat" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimaryDark">@color/off_white</item>
+    </style>
+
+    <style name="Theme.SocketChat" parent="Base.Theme.SocketChat" />
+</resources>
