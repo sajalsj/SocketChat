@@ -6,62 +6,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.socketChat.app.domain.model.ConversationModel
 import com.socketChat.app.domain.repository.ChatRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConversationViewModel(
+@HiltViewModel
+class ConversationViewModel @Inject constructor(
     private val repository: ChatRepository
+) : ViewModel() {
 
-): ViewModel() {
-
-    private val _conversations = MutableLiveData<List<ConversationModel>>()
-    val conversations: LiveData<List<ConversationModel>> = _conversations
+    private val _conversations = MutableStateFlow<List<ConversationModel>>(emptyList())
+    val conversations: StateFlow<List<ConversationModel>> = _conversations
 
     init {
-        viewModelScope.launch {
-            val bots = listOf("SupportBot", "SalesBot", "FAQBot")
-
-            val conversationList = bots.map { botName ->
-                val last = repository.getLatestMessage(botName)
-                ConversationModel(
-                    botName = botName,
-                    lastMessage = last?.msg ?: "Say hi to $botName!",
-                    unreadCount = 0
-                )
-            }
-            _conversations.postValue(conversationList)
-        }
+        getLatestMessage()
     }
 
     fun getLatestMessage() {
         viewModelScope.launch {
             val bots = listOf("SupportBot", "SalesBot", "FAQBot")
-
-            val conversationList = bots.map { botName ->
-                val last = repository.getLatestMessage(botName)
-                ConversationModel(
-                    botName = botName,
-                    lastMessage = last?.msg ?: "Say hi to $botName!",
-                    unreadCount = 0
-                )
+            val latest = bots.map { bot ->
+                val last = repository.getLatestMessage(bot)
+                ConversationModel(bot, last?.msg ?: "Say hi to $bot")
             }
-            _conversations.postValue(conversationList)
-        }
-    }
-
-
-    fun updateConversation(botName: String, lastMessage: String) {
-        _conversations.value = _conversations.value?.map {
-            if (it.botName == botName) {
-                it.copy(lastMessage = lastMessage, unreadCount = it.unreadCount + 1)
-            } else it
-        }
-    }
-
-    fun markAsRead(botName: String) {
-        _conversations.value = _conversations.value?.map {
-            if (it.botName == botName) {
-                it.copy(unreadCount = 0)
-            } else it
+            _conversations.value = latest
         }
     }
 }
+
