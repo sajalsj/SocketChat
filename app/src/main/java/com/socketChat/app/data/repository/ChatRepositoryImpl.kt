@@ -25,6 +25,7 @@ class ChatRepositoryImpl(
                 webSocket?.send(message) ?: false
             } catch (e: Exception) {
                 false
+
             }
         }
     }
